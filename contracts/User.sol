@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0
 pragma solidity >=0.4.22 <0.9.0;
 
 /**
@@ -84,7 +85,7 @@ contract UsersCollective {
         return (address(this), address(this).balance);
     }
     
-    function changeUsername(string calldata _username) external payable {
+    function changeUsername(string memory _username) external payable {
         users[msg.sender].username = _username;
     }
     
