@@ -4,7 +4,7 @@ contract Ownable {
   address public owner = msg.sender;
 
   modifier restricted() {
-    require(msg.sender == owner, "Function restricted to contracts’s owner");
+    require(msg.sender == owner, "Function restricted to contracts owner");
     _;
   }
 }

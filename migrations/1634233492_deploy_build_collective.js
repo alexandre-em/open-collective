@@ -1,5 +1,5 @@
-const BuildCollective = artifacts.require('BuildCollective')
+const Users = artifacts.require('Users')
 
 module.exports = function (deployer) {
-  deployer.deploy(BuildCollective)
+  deployer.deploy(Users)
 }
