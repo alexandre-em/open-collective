@@ -3,7 +3,7 @@ pragma solidity >=0.4.22 <0.9.0;
 
 import "./User.sol";
 
-contract Entreprises is Users {
+contract Entreprises {
   struct Entreprise {
     string entrepriseName;
     address payable owner;
@@ -25,7 +25,6 @@ contract Entreprises is Users {
     public
     payable
   {
-    require(users[msg.sender].registered, "User not registered");
     require(entreprises[msg.sender].registered, "Already have a company");
     require(bytes(_name).length > 0, "Insert a valid name");
     entreprises[msg.sender] = Entreprise(_name, payable(msg.sender), new address[](1000), _balance, true);
