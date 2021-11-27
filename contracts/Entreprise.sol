@@ -6,7 +6,7 @@ import "./User.sol";
 contract Entreprises {
   struct Entreprise {
     string entrepriseName;
-    address payable owner;
+    address owner;
     address[] members;
     uint256 entrepriseBalance;
     bool registered;
@@ -15,6 +15,15 @@ contract Entreprises {
   mapping(address => Entreprise) private entreprises;
 
   event EntrepriseOpened(address indexed ownerAddress, Entreprise indexed entreprise);
+
+  function entreprise(address corpAddr) public view returns (Entreprise memory){
+    require(entreprises[corpAddr].registered, "There is any matched registered entreprise");
+    return entreprises[corpAddr];
+  }
+  function getMembers() public view returns (address[] memory) {
+    require(entreprises[msg.sender].registered, "You do not own any entreprise");
+    return entreprises[msg.sender].members;
+  } 
 
   /**
    * @dev Open a Entreprise account
@@ -25,9 +34,9 @@ contract Entreprises {
     public
     payable
   {
-    require(entreprises[msg.sender].registered, "Already have a company");
-    require(bytes(_name).length > 0, "Insert a valid name");
-    entreprises[msg.sender] = Entreprise(_name, payable(msg.sender), new address[](1000), _balance, true);
+    require(bytes(_name).length > 1, "Insert a valid name");
+    require(msg.value > 0, "Amount of the transaction < 0");
+    entreprises[msg.sender] = Entreprise(_name, msg.sender, new address[](100), _balance, true);
     emit EntrepriseOpened(msg.sender, entreprises[msg.sender]);
   }
 

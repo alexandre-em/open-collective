@@ -2,7 +2,7 @@
   <div class="home" v-if="!account">
     <form @submit.prevent="signUp">
       <card
-        title="Enter your username here"
+        :title="`Enter your ${type} name here`"
         subtitle="Type directly in the input and hit enter. All spaces will be converted to _"
       >
         <input
@@ -11,14 +11,26 @@
           v-model="username"
           placeholder="Type your username here"
         />
+        <input
+          type="number"
+          class="input-username"
+          v-model="corpBalance"
+          placeholder="Your company's balance"
+          v-if="type === accountTypes[1]"
+        />
+        <collective-button :transparent="true">
+          Create an account
+        </collective-button>
       </card>
     </form>
   </div>
   <div class="home" v-if="account">
     <div class="card-home-wrapper">
       <card
-        :title="account.username"
-        :subtitle="`${balance} Ξ\t\t${account.balance} Tokens`"
+        :title="account.username || account.entrepriseName"
+        :subtitle="`${balance} Ξ\t\t${
+          account.userBalance || account.entrepriseBalance
+        } Tokens`"
         :gradient="true"
       >
         <div class="explanations">
@@ -42,31 +54,47 @@
 import { defineComponent, computed } from 'vue'
 import { useStore } from 'vuex'
 import Card from '@/components/Card.vue'
+import CollectiveButton from '@/components/CollectiveButton.vue'
+import { ACCOUNT_TYPE_COMPANY, ACCOUNT_TYPE_USER } from '@/constants/store'
 
 export default defineComponent({
-  components: { Card },
+  components: { Card, CollectiveButton },
   setup() {
     const store = useStore()
     const address = computed(() => store.state.account.address)
     const balance = computed(() => store.state.account.balance)
     const contract = computed(() => store.state.contract)
-    return { address, contract, balance }
+    const type = computed(() => store.state.account.type)
+    return { address, contract, balance, type }
   },
   data() {
     const account = null
     const username = ''
-    return { account, username }
+    const corpBalance = 0
+    const accountTypes = [ACCOUNT_TYPE_USER, ACCOUNT_TYPE_COMPANY]
+    return { account, username, corpBalance, accountTypes }
   },
   methods: {
     async updateAccount() {
-      const { address, contract } = this
-      this.account = await contract.methods.user(address).call()
+      const { address, contract, type } = this
+      this.account =
+        type === ACCOUNT_TYPE_USER
+          ? await contract.methods.user(address).call()
+          : await contract.methods.entreprise(address).call()
     },
     async signUp() {
-      const { contract, username } = this
+      const { address, contract, username, type } = this
       const name = username.trim().replace(/ /g, '_')
-      await contract.methods.signUp(name).send()
-      await this.updateAccount()
+      if (type === ACCOUNT_TYPE_USER) {
+        await contract.methods
+          .openAccount(name)
+          .send({ from: address, value: 50 })
+        await this.updateAccount()
+      } else {
+        await contract.methods
+          .openEntreprise(name, this.corpBalance)
+          .send({ from: address, value: 500 })
+      }
       this.username = ''
     },
     async addTokens() {
@@ -74,10 +102,19 @@ export default defineComponent({
       await contract.methods.addBalance(200).send()
       await this.updateAccount()
     },
+    async getAccount() {
+      const { address, contract } = this
+      console.log(await contract.methods.entreprise(address).call())
+    },
   },
   async mounted() {
-    const { address, contract } = this
-    const account = await contract.methods.user(address).call()
+    const { address, contract, type } = this
+    this.type = type
+    const account =
+      type === ACCOUNT_TYPE_USER
+        ? await contract.methods.user(address).call()
+        : await contract.methods.entreprise(address).call()
+    console.log(account)
     if (account.registered) this.account = account
   },
 })

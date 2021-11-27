@@ -1,5 +1,5 @@
 import Web3 from 'web3'
-import ContractInterface from '../build/contracts/Users.json'
+import ContractInterface from '../build/contracts/Entreprises.json'
 
 const win: any = window
 
@@ -30,6 +30,6 @@ export const connect = async () => {
       console.error(error)
     }
   } else {
-    console.log('Not Dapp browser.')
+    console.error('Not Dapp browsers')
   }
 }

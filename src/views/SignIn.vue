@@ -7,12 +7,15 @@
       :blue="true"
     >
       <collective-button :transparent="true" @click="connect">
-        Connect
+        Connect as an User
+      </collective-button>
+      <collective-button :transparent="true" @click="connectEntreprise">
+        Connect as a Company
       </collective-button>
     </card>
     <card title="You're connected!" subtitle="Hooray" :blue="true" v-else>
       <collective-button :transparent="true" @click="goToAccount">
-        Go to account
+        Go to your {{ type }} account
       </collective-button>
     </card>
     <spacer :size="24" />
@@ -42,8 +45,10 @@ export default defineComponent({
   setup() {
     const store = useStore()
     const address = computed(() => store.state.account.address)
-    const connect = () => store.dispatch('ethereumConnect')
-    return { address, connect }
+    const connect = () => store.dispatch('userConnect')
+    const connectEntreprise = () => store.dispatch('entrepriseConnect')
+    const type = computed(() => store.state.account.type)
+    return { address, connect, connectEntreprise, type }
   },
   computed: {
     links() {
