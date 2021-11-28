@@ -75,4 +75,29 @@ contract Entreprises is Users {
       }
     }
   }
+
+  //ADD
+  function deposit(uint256 amount) external payable {
+    require(entreprises[msg.sender].registered, "Your organisation is not registered");
+    require(msg.value > 0, "Amount of the transaction < 0");
+    entreprises[msg.sender].entrepriseBalance += amount;
+  }
+
+  function withdraw(uint256 amount) external {
+    require(entreprises[msg.sender].registered, "Your organisation is not registered");
+    require(msg.value > 0, "Amount of the transaction < 0");
+    require(entreprise[msg.sender].entrepriseBalance >= amount, "Account balance is downer than your transaction amount");
+    entreprise[msg.sender].entrepriseBalance -= amount;
+    address payable _owner = payable(msg.sender);
+    _owner.transfer(amount);
+  }
+
+  function paySalary(address member) external {
+    require(entreprises[msg.sender].registered, "Your organisation is not registered");
+    require(msg.value > 0, "Amount of the transaction < 0");
+    require(entreprise[msg.sender].entrepriseBalance >= amount, "Account balance is downer than your transaction amount");
+    entreprise[msg.sender].entrepriseBalance -= amount;
+    address payable _owner = payable(member);
+    _owner.transfer(amount);
+  }
 }
