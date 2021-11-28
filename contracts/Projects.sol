@@ -18,7 +18,7 @@ contract Projects {
         uint projectID;
         address projectOwnerAddress;
         string projectName;
-        uint projectBalance;
+        uint256 projectBalance;
         address[] projectContributors;
         uint nbTransactions;
         bool registered;
@@ -185,7 +185,7 @@ contract Projects {
     * @param projectID { uint }
     * return { uint, address, string, uint, uint, uint }
     */
-    function getProjectDetails(uint projectID) external view returns (uint, address, string memory, uint, uint, uint) {
+    function getProjectDetails(uint projectID) external view returns (uint, address, string memory, uint256, uint, uint) {
         require(projects[projectID].registered, "Any project exists with this ID");
         return (projects[projectID].projectID, projects[projectID].projectOwnerAddress, projects[projectID].projectName, projects[projectID].projectBalance, projects[projectID].projectContributors.length, projects[projectID].nbTransactions);
     }
