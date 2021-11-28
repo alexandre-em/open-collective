@@ -1,12 +1,12 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 import store from '@/store'
 import SignIn from '@/views/SignIn.vue'
-
+import CreateProject from '@/views/CreateProject.vue'
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
     name: 'SignIn',
-    component: SignIn,
+    component: import('@/views/AllProject.vue'),
   },
   {
     path: '/account',
