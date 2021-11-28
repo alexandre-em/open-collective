@@ -3,9 +3,9 @@ pragma solidity >=0.4.22 <0.9.0;
 
 contract Projects {
 
-    uint[] allProjectsID;
-    uint randNonce = 10;
-    uint randProjectID = uint(keccak256(abi.encodePacked(block.timestamp, msg.sender, randNonce))) % 100000;
+    uint[] private allProjectsID;
+    uint private randNonce = 10;
+    uint private randProjectID = uint(keccak256(abi.encodePacked(block.timestamp, msg.sender, randNonce))) % 100000;
 
     struct ProjectsOwner {
         address ownerAddress;
@@ -35,7 +35,7 @@ contract Projects {
     * If the User have any project in the contract, the owner of this project is mapped with his address in the owners List and the ID of this project is added in the project ID List
     * This project is mapped wih his project ID in the projects List
     * msg.value will be added with the project balance 
-    * @param _username { string }
+    * @param _projectName { string }
     */
     function createProject(string memory _projectName) external payable {
         require(bytes(_projectName).length > 0, "Username not valide");
@@ -138,7 +138,7 @@ contract Projects {
     * @dev An utilitary internal function for initialize a new project
     * Create a new Project
     * Add a random unused ID to this project
-    * @param _username { string }
+    * @param _projectName { string }
     * return { Project }
     */
     function initializeNewProject(string memory _projectName) internal returns (Project memory) {
@@ -204,7 +204,7 @@ contract Projects {
     /**
     * @dev An utilitary function to add a contributor on an project
     * Only the owner of the project can add contributor on this project
-    * @param projectID { uint }
+    * @param pID { uint }
     */
     function addContributor(uint pID, address newContributor) external payable {
         require(owners[msg.sender].registered, "You have not any registered project");
@@ -226,7 +226,7 @@ contract Projects {
     * @dev An utilitary function to close the project
     * Only the owner of the project can close this project
     * the project balance will divided by the number of the contributors and the share will be sended to each contributor
-    * @param projectID { uint }
+    * @param pID { uint }
     */
     function closeProject(uint pID) external {
         require(owners[msg.sender].registered, "You have not any registered project");
