@@ -6,6 +6,7 @@ contract Projects {
     uint[] private allProjectsID;
     uint private randNonce = 10;
     uint private randProjectID = uint(keccak256(abi.encodePacked(block.timestamp, msg.sender, randNonce))) % 100000;
+    uint private bountiesCounter = 0;//ADD
 
     struct ProjectsOwner {
         address ownerAddress;
@@ -24,8 +25,20 @@ contract Projects {
         bool registered;
     }
 
+    //ADD
+    struct Bountie {
+        uint linkedProjectID;
+        uint bountieID;
+        uint256 price;
+        string bountieName;
+        address winnerAddress;
+        bool bountieFounded;
+        bool registered;
+    }
+
     mapping(address => ProjectsOwner) private owners;
     mapping(uint => Project) private projects;
+    mapping(uint => Bountie[]) private bounties;//ADD
 
     /**
     * @dev An utilitary function for create a new project for the msg.sender (User)
@@ -38,7 +51,7 @@ contract Projects {
     * @param _projectName { string }
     */
     function createProject(string memory _projectName) external payable {
-        require(bytes(_projectName).length > 0, "Username not valide");
+        require(bytes(_projectName).length > 0, "Project name not valide");
         require(msg.value > 0, "Amount of the transaction need to be upper than 0");
         
         uint index;
@@ -206,7 +219,7 @@ contract Projects {
     * Only the owner of the project can add contributor on this project
     * @param pID { uint }
     */
-    function addContributor(uint pID, address newContributor) external payable {
+    function addContributor(uint pID, address newContributor) external {
         require(owners[msg.sender].registered, "You have not any registered project");
         bool idFounded = false;
         for(uint i=0; i < owners[msg.sender].projectsIDList.length; i++)
@@ -273,4 +286,121 @@ contract Projects {
             }
         }
     }
+
+
+    //ADD
+
+    /**
+    * @dev An utilitary function to add bountie to a project
+    * Only the owner of the project add bountie to this project
+    * @param pID,_bountieName  { uint, string }
+    */
+    function addBountie(uint pID, string memory _bountieName) external payable {
+        require(owners[msg.sender].registered, "You have not any registered project");
+        require(bytes(_bountieName).length > 0, "Bountie name not valide");
+        require(msg.value > 0, "Amount of the transaction need to be upper than 0");
+        bool idFounded = false;
+        uint index;
+        for(uint i=0; i < owners[msg.sender].projectsIDList.length; i++)
+        {
+            if(owners[msg.sender].projectsIDList[i] == pID)
+            {
+                idFounded = true;
+                index = i;
+                break;
+            }
+        }
+        require(projects[pID].registered && idFounded, "Any project exists with this ID");
+
+        Bountie memory newBountie;
+        newBountie.linkedProjectID = pID;
+        newBountie.bountieID = bountiesCounter;
+        newBountie.price = msg.value;
+        newBountie.bountieName = _bountieName;
+        newBountie.bountieFounded = false;
+        newBountie.registered = true;
+
+        bounties[pID].push(newBountie);
+        bountiesCounter++;
+    }
+
+    /**
+    * @dev An utilitary function to remove bountie to a project
+    * Only the owner of the project can remove bountie to this project
+    * @param pID, _bountieID  { uint, uint }
+    */
+    function removeBountie(uint pID, uint _bountieID) external {
+        require(owners[msg.sender].registered, "You have not any registered project");
+        bool idFounded = false;
+        uint index;
+        for(uint i=0; i < owners[msg.sender].projectsIDList.length; i++)
+        {
+            if(owners[msg.sender].projectsIDList[i] == pID)
+            {
+                idFounded = true;
+                index = i;
+                break;
+            }
+        }
+        require(projects[pID].registered && idFounded, "Any project exists with this ID");
+
+        for(uint i=0; i < bounties[pID].length; i++)
+        {
+            if(bounties[pID][i].registered && bounties[pID][i].bountieID == _bountieID)
+            {
+                if(bounties[pID][i].bountieFounded)
+                {
+                    address payable _owner = payable(bounties[pID][i].winnerAddress);
+                    _owner.transfer(bounties[pID][i].price);
+                }
+                else
+                {
+                    address payable _owner = payable(msg.sender);
+                    _owner.transfer(bounties[pID][i].price);
+                }
+            }
+        }
+    }
+
+    /**
+    * @dev An utilitary function to get the list of bounties ID of the project
+    * @param pID  { uint }
+    * return { uint[] }
+    */
+    function getBountiesID(uint pID) external view returns(uint[] memory) {
+        require(projects[pID].registered, "Any project exists with this ID");
+        uint[] memory idList = new uint[](bounties[pID].length);
+
+        for(uint i=0; i < bounties[pID].length; i++)
+        {
+            idList[i] = bounties[pID][i].bountieID;
+        }
+
+        return idList;
+    }
+
+    /**
+    * @dev An utilitary function to activate the bountie by the author who fixed a bountie
+    * This function return true if the boundie exists (author win the boundie)
+    * This function return false if the boundie does not exist (author give the wrong boundie ID)
+    * @param pID, _bountieID { uint, uint }
+    * return { uint[] }
+    */
+    function winBountie(uint pID, uint _bountieID) external returns (bool) {
+        require(projects[pID].registered, "Any project exists with this ID");
+
+        bool bountieWinned;
+        for(uint i=0; i < bounties[pID].length; i++)
+        {
+            if(bounties[pID][i].registered && bounties[pID][i].bountieID == _bountieID)
+            {
+                bounties[pID][i].bountieFounded = true;
+                bounties[pID][i].winnerAddress = msg.sender;
+                bountieWinned = true;
+                break;
+            }
+            bountieWinned = false;
+        }
+        return bountieWinned;
+    } 
 }
