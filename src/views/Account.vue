@@ -36,8 +36,11 @@
           <entreprise-view
             :onLastProject="handleLastProject"
             :onCreateProject="handleCreateProject"
+            :onDeposit="handleDeposit"
             :onGetMemberList="getMemberList"
             :onAddMember="handleAddMember"
+            :onWithdraw="handleWithdraw"
+            :onPaySalary="handlePaySalary"
             v-if="type === accountTypes[1]"
           />
           <user-view
@@ -181,15 +184,29 @@ export default defineComponent({
       await this.updateAccount()
     },
     async handleDeposit(amount: number) {
-      await this.contract.methods.deposit().send({
-        from: this.address,
-        value: this.web3.utils.toWei(amount.toString(), 'ether'),
-      })
+      if (this.type === ACCOUNT_TYPE_USER) {
+        await this.contract.methods.deposit().send({
+          from: this.address,
+          value: this.web3.utils.toWei(amount.toString(), 'ether'),
+        })
+      } else {
+        await this.contract.methods.depositOnEntreprise().send({
+          from: this.address,
+          value: this.web3.utils.toWei(amount.toString(), 'ether'),
+        })
+      }
       await this.updateAccount()
     },
     async handleWithdraw(amount: number) {
       const amountOnEther = this.web3.utils.toWei(amount.toString(), 'ether')
-      await this.contract.methods.withdrawUserBalance(BigInt(amountOnEther)).send()
+      if (this.type === ACCOUNT_TYPE_USER)
+        await this.contract.methods.withdrawUserBalance(BigInt(amountOnEther)).send()
+      else await this.contract.methods.withdraw(BigInt(amountOnEther)).send()
+      await this.updateAccount()
+    },
+    async handlePaySalary(address: string, amount: number) {
+      const amountOnEther = this.web3.utils.toWei(amount.toString(), 'ether')
+      await this.contract.methods.paySalary(address, BigInt(amountOnEther)).send()
       await this.updateAccount()
     },
   },
@@ -200,8 +217,6 @@ export default defineComponent({
       type === ACCOUNT_TYPE_USER
         ? await contract.methods.user(address).call()
         : await contract.methods.entreprise(address).call()
-    const projects = (await contract.methods.getOwnerProjects().call())
-    console.log(await contract.methods.getProjectDetails(projects[2][projects[2].length -1]).call())
     if (account.registered) this.account = account
   },
 })

@@ -34,6 +34,27 @@
         </collective-button>
       </card>
     </div>
+    <div class="card-main-element">
+      <card title="Withdraw" :blue="true">
+        <collective-button :transparent="true" @click="call('withdraw')">
+          click here
+        </collective-button>
+      </card>
+    </div>
+    <div class="card-main-element">
+      <card title="Deposit" :blue="true">
+        <collective-button :transparent="true" @click="call('deposit')">
+          click here
+        </collective-button>
+      </card>
+    </div>
+    <div class="card-main-element">
+      <card title="Pay salary" :blue="true">
+        <collective-button :transparent="true" @click="call('salary')">
+          click here
+        </collective-button>
+      </card>
+    </div>
   </div>
   <div class="card-main">
     <div class="member-list" v-if="type === 'get'">
@@ -51,6 +72,57 @@
       <input id="add-member-input" type="text" v-model="toAdd" />
       <collective-button :transparent="true">Submit</collective-button>
     </form>
+    <form
+      class="add-member"
+      v-if="type === 'deposit'"
+      @submit.prevent="
+        () => {
+          onDeposit(value)
+          value = 0
+        }
+      "
+    >
+      <h1>Insert the amount of ether you want to put on your account</h1>
+      <input id="add-member-input" type="text" v-model="value" />
+      <collective-button :transparent="true">Submit</collective-button>
+    </form>
+    <form
+      class="add-member"
+      v-if="type === 'withdraw'"
+      @submit.prevent="
+        () => {
+          onWithdraw(value)
+          value = 0
+        }
+      "
+    >
+      <h1>Insert the amount of ether you want to withdraw from your account</h1>
+      <input id="add-member-input" type="text" v-model="value" />
+      <collective-button :transparent="true">Submit</collective-button>
+    </form>
+    <form
+      class="add-member"
+      v-if="type === 'salary'"
+      @submit.prevent="
+        () => {
+          onPaySalary(toAdd, value)
+          value = 0
+          toAdd = ''
+        }
+      "
+    >
+      <h1>
+        Insert the address of the user and the amout of ether you want to send
+      </h1>
+      <input
+        id="add-member-input"
+        type="text"
+        v-model="toAdd"
+        placeholder="Address eg. 0x1234..."
+      />
+      <input id="add-member-input" type="number" v-model="value" />
+      <collective-button :transparent="true">Submit</collective-button>
+    </form>
   </div>
 </template>
 
@@ -65,18 +137,24 @@ export default {
     onGetMemberList: Function,
     onAddMember: Function,
     onLastProject: Function,
+    onDeposit: Function,
+    onWithdraw: Function,
+    onPaySalary: Function,
   },
   components: { Card, CollectiveButton },
   data() {
     const type = ''
-    const toAdd =''
-    return { type, toAdd }
+    const toAdd = ''
+    const value = 0
+    return { type, toAdd, value }
   },
   methods: {
     call(type, func) {
       if (type === 'get') this.members = func()
       else if (func) func()
       this.type = type
+      this.toAdd = ''
+      this.value = 0
     },
   },
 }
