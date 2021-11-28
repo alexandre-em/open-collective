@@ -1,9 +1,10 @@
 <template lang="html">
-  <div class="home" v-if="!account">
+  <div class="home" v-if="!account.registered">
     <form @submit.prevent="signUp">
       <card
         :title="`Enter your ${type} name here`"
         subtitle="Type directly in the input and hit enter. All spaces will be converted to _"
+        :blue="true"
       >
         <input
           type="text"
@@ -24,26 +25,20 @@
       </card>
     </form>
   </div>
-  <div class="home" v-if="account">
+  <div class="home" v-if="account.registered">
     <div class="card-home-wrapper">
       <card
-        :title="account.username || account.entrepriseName"
-        :subtitle="`${balance} Ξ\t\t${
-          account.userBalance || account.entrepriseBalance
-        } Tokens`"
+        :title="account.username || `Group: ${account.entrepriseName}`"
+        :subtitle="`Balance: ${getBalance()} ETH`"
         :gradient="true"
       >
-        <div class="explanations">
-          This data has been fetched from the blockchain. You started by
-          connecting MetaMask, and you fetched your data by reading the
-          blockchain. Try to modify the code to see what's happening!
-        </div>
-        <div class="explanations">
-          On your account on the contract, you have
-          {{ account.balance }} tokens. If you click
-          <button class="button-link" @click="addTokens">here</button>, you can
-          add some token to your account. Just give it a try! And think to put
-          an eye on Ganache!
+        <div class="card-main">
+          <entreprise-view
+            :onCreateProject="handleCreateProject"
+            :onGetMemberList="getMemberList"
+            :onAddMember="handleAddMember"
+            v-if="type === accountTypes[1]"
+          ></entreprise-view>
         </div>
       </card>
     </div>
@@ -53,12 +48,29 @@
 <script lang="ts">
 import { defineComponent, computed } from 'vue'
 import { useStore } from 'vuex'
+import Web3 from 'web3'
+
 import Card from '@/components/Card.vue'
 import CollectiveButton from '@/components/CollectiveButton.vue'
+import EntrepriseView from '@/components/EntrepriseView.vue'
 import { ACCOUNT_TYPE_COMPANY, ACCOUNT_TYPE_USER } from '@/constants/store'
+import { EMPTY_ADDRESS } from '@/constants'
+
+type AccountType = {
+  add?: string
+  entrepriseName?: string
+  username?: string
+  owner?: string
+  address?: string[]
+  entrepriseBalance?: number
+  userBalance?: number
+  nbWithdrawTransactions?: number
+  registered?: boolean
+  members?: string[]
+}
 
 export default defineComponent({
-  components: { Card, CollectiveButton },
+  components: { Card, CollectiveButton, EntrepriseView },
   setup() {
     const store = useStore()
     const address = computed(() => store.state.account.address)
@@ -68,11 +80,14 @@ export default defineComponent({
     return { address, contract, balance, type }
   },
   data() {
-    const account = null
+    const account: AccountType = {}
     const username = ''
     const corpBalance = 0
     const accountTypes = [ACCOUNT_TYPE_USER, ACCOUNT_TYPE_COMPANY]
-    return { account, username, corpBalance, accountTypes }
+    const web3 = new Web3(
+      new Web3.providers.HttpProvider('http://127.0.0.1:7545')
+    )
+    return { account, username, corpBalance, accountTypes, web3 }
   },
   methods: {
     async updateAccount() {
@@ -88,12 +103,14 @@ export default defineComponent({
       if (type === ACCOUNT_TYPE_USER) {
         await contract.methods
           .openAccount(name)
-          .send({ from: address, value: 50 })
+          .send({ from: address, value: 5000 })
         await this.updateAccount()
       } else {
-        await contract.methods
-          .openEntreprise(name, this.corpBalance)
-          .send({ from: address, value: 500 })
+        await contract.methods.openEntreprise(name).send({
+          from: address,
+          value: this.web3.utils.toWei(this.corpBalance.toString(), 'ether'),
+        })
+        await this.updateAccount()
       }
       this.username = ''
     },
@@ -105,6 +122,28 @@ export default defineComponent({
     async getAccount() {
       const { address, contract } = this
       console.log(await contract.methods.entreprise(address).call())
+    },
+    getBalance() {
+      if (!this.account) return null
+      if (this.account?.userBalance)
+        return this.web3.utils.fromWei(
+          this.account.userBalance.toString(),
+          'ether'
+        )
+      else if (this.account?.entrepriseBalance)
+        return this.web3.utils.fromWei(
+          this.account.entrepriseBalance?.toString(),
+          'ether'
+        )
+    },
+    getMemberList() {
+      return this.account.members?.filter(isMember => isMember == EMPTY_ADDRESS)
+    },
+    handleAddMember() {
+      console.log('added')
+    },
+    handleCreateProject() {
+      console.log('test')
     },
   },
   async mounted() {
@@ -125,10 +164,18 @@ export default defineComponent({
   padding: 24px;
   flex: 1;
   display: flex;
-  flex-direction: column;
   justify-content: center;
-  max-width: 500px;
-  margin: auto;
+  align-items: center;
+}
+.card-home-wrapper {
+  width: 100%;
+  height: 100%;
+}
+
+.card-main {
+  display: flex;
+  flex-direction: row;
+  height: 100%;
 }
 
 .explanations {

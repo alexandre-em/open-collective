@@ -46,6 +46,7 @@ export default {
     70%,
     rgba(167, 79, 236, 0.5)
   );
+  height: 100%;
 }
 
 .blue-gradient {

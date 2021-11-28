@@ -3,7 +3,7 @@ pragma solidity >=0.4.22 <0.9.0;
 
 import "./User.sol";
 
-contract Entreprises {
+contract Entreprises is Users {
   struct Entreprise {
     string entrepriseName;
     address owner;
@@ -17,7 +17,6 @@ contract Entreprises {
   event EntrepriseOpened(address indexed ownerAddress, Entreprise indexed entreprise);
 
   function entreprise(address corpAddr) public view returns (Entreprise memory){
-    require(entreprises[corpAddr].registered, "There is any matched registered entreprise");
     return entreprises[corpAddr];
   }
   function getMembers() public view returns (address[] memory) {
@@ -28,15 +27,14 @@ contract Entreprises {
   /**
    * @dev Open a Entreprise account
    * @param _name {string}
-   * @param _balance {uint}
    */
-  function openEntreprise(string memory _name, uint256 _balance)
+  function openEntreprise(string memory _name)
     public
     payable
   {
     require(bytes(_name).length > 1, "Insert a valid name");
     require(msg.value > 0, "Amount of the transaction < 0");
-    entreprises[msg.sender] = Entreprise(_name, msg.sender, new address[](100), _balance, true);
+    entreprises[msg.sender] = Entreprise(_name, msg.sender, new address[](100), msg.value, true);
     emit EntrepriseOpened(msg.sender, entreprises[msg.sender]);
   }
 

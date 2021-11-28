@@ -1,5 +1,4 @@
-import * as User from '../services/ethereum'
-import * as Entreprise from '../services/entreprise'
+import * as OpenCollective from '../services/entreprise'
 import { ACCOUNT_TYPE_COMPANY, ACCOUNT_TYPE_USER } from '@/constants/store'
 import { ActionContext } from 'vuex'
 
@@ -12,9 +11,8 @@ import { ActionContext } from 'vuex'
 const connect = async (
   context: ActionContext<any, any>,
   type: string,
-  contractObject: any
 ): Promise<void> => {
-  const response = await contractObject.connect()
+  const response = await OpenCollective.connect()
   if (response) {
     const { address, contract, balance } = response
     context.commit('updateEthereum', {
@@ -27,13 +25,13 @@ const connect = async (
 }
 
 const userConnect = async (context: ActionContext<any, any>): Promise<void> => {
-  await connect(context, ACCOUNT_TYPE_USER, User)
+  await connect(context, ACCOUNT_TYPE_USER)
 }
 
 const entrepriseConnect = async (
   context: ActionContext<any, any>
 ): Promise<void> => {
-  await connect(context, ACCOUNT_TYPE_COMPANY, Entreprise)
+  await connect(context, ACCOUNT_TYPE_COMPANY)
 }
 
 export default {
