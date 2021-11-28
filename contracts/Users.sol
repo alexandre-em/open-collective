@@ -6,7 +6,7 @@ contract Users {
     struct User {
         address ownerAddress;
         string username;
-        uint userBalance;
+        uint256 userBalance;
         uint nbDepositTransactions;
         uint nbWithdrawTransactions;
         bool registered;
@@ -15,7 +15,7 @@ contract Users {
     // Each wallet address is mapped with a User in users list
     mapping(address => User) private users;
     
-    event UserAdded(address add, string username, uint balance, uint nbDepositTransactions, uint nbWithdrawTransactions);
+    event UserAdded(address add, string username, uint256 balance, uint nbDepositTransactions, uint nbWithdrawTransactions);
     
     /**
     * @dev An utilitary function for create a new account for the msg.sender (User)
@@ -32,7 +32,7 @@ contract Users {
         emit UserAdded(msg.sender, _username, msg.value, 1, 0);
     }
     
-    event moneyReceived(address add, string username, uint balance, uint receivedMoney);
+    event moneyReceived(address add, string username, uint256 balance, uint receivedMoney);
     
     /** 
     * @dev solidity standard function to deposit an amount without msg.data
@@ -61,7 +61,7 @@ contract Users {
     * @dev An utilitary function to get the msg.sender (User) account details
     * return { address, string, uint, uint, uint }
     */
-    function checkUserBalance() external view returns (address, string memory, uint, uint, uint) {
+    function checkUserBalance() external view returns (address, string memory, uint256, uint, uint) {
         require(users[msg.sender].registered,"No account openned for this User");
         return (msg.sender, users[msg.sender].username, users[msg.sender].userBalance, users[msg.sender].nbDepositTransactions, users[msg.sender].nbWithdrawTransactions);
     }
@@ -85,7 +85,7 @@ contract Users {
     * This amount will be deducted from the msg.sender (User) account balance
     * @param amount { uint }
     */
-    function withdrawUserBalance(uint amount) external {
+    function withdrawUserBalance(uint256 amount) external {
         require(users[msg.sender].registered,"No account openned for this User");
         require(amount > 0, "Amount of the transaction need to be upper than 0");
         require(users[msg.sender].userBalance >= amount, "Account balance is downer than your withdraw amount");
@@ -101,7 +101,7 @@ contract Users {
     * This amount will be deducted from the msg.sender (User) account
     * @param amount { address, uint }
     */
-    function sendMoney(address add, uint amount) external {
+    function sendMoney(address add, uint256 amount) external {
         require(users[msg.sender].registered, "No account openned for the sender");
         require(users[add].registered, "No account openned for the receiver");
         require(amount > 0, "Amount of the transaction need to be upper than 0");
