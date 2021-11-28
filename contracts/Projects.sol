@@ -162,11 +162,13 @@ contract Projects {
     function closeProject(uint pID) external {
         require(owners[msg.sender].registered, "You have not any registered project");
         bool idFounded = false;
+        uint index;
         for(uint i=0; i < owners[msg.sender].projectsIDList.length; i++)
         {
             if(owners[msg.sender].projectsIDList[i] == pID)
             {
                 idFounded = true;
+                index = i;
                 break;
             }
         }
@@ -190,5 +192,17 @@ contract Projects {
                 projects[pID].projectBalance -= share;
             }
         }
+
+        delete projects[pID];
+        delete owners[msg.sender].projectsIDList[index];
+        for(uint j=0; j < allProjectsID.length; j++)
+        {
+            if(allProjectsID[j] == pID)
+            {
+                delete allProjectsID[j];
+                break;
+            }
+        }
     }
+    
 }
