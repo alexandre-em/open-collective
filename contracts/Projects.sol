@@ -273,5 +273,4 @@ contract Projects {
             }
         }
     }
-    
 }
