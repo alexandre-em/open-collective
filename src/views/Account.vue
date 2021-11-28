@@ -34,6 +34,7 @@
       >
         <div class="card-main">
           <entreprise-view
+            :onLastProject="handleLastProject"
             :onCreateProject="handleCreateProject"
             :onGetMemberList="getMemberList"
             :onAddMember="handleAddMember"
@@ -41,6 +42,7 @@
           />
           <user-view
             v-else-if="type === accountTypes[0]"
+            :onLastProject="handleLastProject"
             :onChangeName="handleChangeName"
             :onDeposit="handleDeposit"
             :onSend="handleSend"
@@ -158,6 +160,14 @@ export default defineComponent({
     handleCreateProject() {
       this.$router.push({ name: 'CreateProject' })
     },
+    async handleLastProject() {
+      console.log('test')
+      const projects = await this.contract.methods.getOwnerProjects().call()
+      this.$router.push({
+        name: 'Project',
+        params: { id: projects[2][projects[2].length - 1] },
+      })
+    },
     async handleChangeName(name: string) {
       await this.contract.methods.changeUsername(name).send({
         from: this.address,
@@ -190,7 +200,8 @@ export default defineComponent({
       type === ACCOUNT_TYPE_USER
         ? await contract.methods.user(address).call()
         : await contract.methods.entreprise(address).call()
-    console.log(account)
+    const projects = (await contract.methods.getOwnerProjects().call())
+    console.log(await contract.methods.getProjectDetails(projects[2][projects[2].length -1]).call())
     if (account.registered) this.account = account
   },
 })

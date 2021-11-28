@@ -38,6 +38,13 @@
         </collective-button>
       </card>
     </div>
+    <div class="card-main-element">
+      <card title="LastProject" :blue="true">
+        <collective-button :transparent="true" @click="onLastProject">
+          click here
+        </collective-button>
+      </card>
+    </div>
   </div>
   <div class="card-main">
     <form
@@ -120,6 +127,7 @@ import CollectiveButton from '@/components/CollectiveButton.vue'
 export default {
   name: 'EntrepriseView',
   props: {
+    onLastProject: Function,
     onDeposit: Function,
     onSend: Function,
     onChangeName: Function,

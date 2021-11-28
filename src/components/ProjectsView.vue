@@ -1,51 +1,50 @@
 <template>
   <div class="card-main-wrapper">
     <div class="card-main-element">
-      <card title="Create a project" :blue="true">
-        <collective-button
-          :transparent="true"
-          @click="call('create', onCreateProject)"
-        >
+      <card title="Close the project" :blue="true">
+        <collective-button :transparent="true" @click="onCloseProject">
           click here
         </collective-button>
       </card>
     </div>
     <div class="card-main-element">
-      <card title="Get Members list" :blue="true">
-        <collective-button
-          :transparent="true"
-          @click="call('get', onGetMemberList)"
-        >
+      <card title="Sponsor the project" :blue="true">
+        <collective-button :transparent="true" @click="call('sponsor')">
           click here
         </collective-button>
       </card>
     </div>
     <div class="card-main-element">
-      <card title="Add a member" :blue="true">
+      <card title="Add contributor" :blue="true">
         <collective-button :transparent="true" @click="call('add')">
-          click here
-        </collective-button>
-      </card>
-    </div>
-    <div class="card-main-element">
-      <card title="LastProject" :blue="true">
-        <collective-button :transparent="true" @click="onLastProject">
           click here
         </collective-button>
       </card>
     </div>
   </div>
   <div class="card-main">
-    <div class="member-list" v-if="type === 'get'">
-      <div v-for="member in members" :key="member" class="member-card">
-        <h2>Member</h2>
-        <p>{{ member }}</p>
-      </div>
-    </div>
+    <form
+      class="add-member"
+      v-if="type === 'sponsor'"
+      @submit.prevent="
+        () => {
+          onSponsoringProject(value)
+          value = 0
+        }
+      "
+    >
+      <h1>Insert the amount of ether you want to send</h1>
+      <input id="add-member-input" type="text" v-model="value" />
+      <collective-button :transparent="true">Submit</collective-button>
+    </form>
     <form
       class="add-member"
       v-else-if="type === 'add'"
-      @submit.prevent="onAddMember(toAdd)"
+      @submit.prevent="
+        () => {
+          onAddContributor(toAdd)
+        }
+      "
     >
       <h1>Add a new member to your group</h1>
       <input id="add-member-input" type="text" v-model="toAdd" />
@@ -61,22 +60,25 @@ import CollectiveButton from '@/components/CollectiveButton.vue'
 export default {
   name: 'EntrepriseView',
   props: {
-    onCreateProject: Function,
-    onGetMemberList: Function,
-    onAddMember: Function,
-    onLastProject: Function,
+    project: Object,
+    onAddContributor: Function,
+    onCloseProject: Function,
+    onSponsoringProject: Function,
   },
   components: { Card, CollectiveButton },
   data() {
     const type = ''
-    const toAdd =''
-    return { type, toAdd }
+    const toAdd = ''
+    const value = 0
+    return { type, toAdd, value }
   },
   methods: {
     call(type, func) {
       if (type === 'get') this.members = func()
       else if (func) func()
       this.type = type
+      this.toAdd = ''
+      this.value = 0
     },
   },
 }

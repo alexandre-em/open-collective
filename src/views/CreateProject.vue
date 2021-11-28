@@ -71,18 +71,12 @@ export default defineComponent({
     const nbContributor = 0
     const projectName = ''
     const isActivated = false
-    const listAdress: string[] = [
-      'daji133fujv',
-      'kndaizo331ejio1',
-      'an1zedk456d11',
-    ]
     const listContributor: string[] = []
     const toAdd = ''
     return {
       nbContributor,
       isActivated,
       listContributor,
-      listAdress,
       toAdd,
       projectName,
     }
@@ -99,16 +93,19 @@ export default defineComponent({
       this.isActivated = !this.isActivated
     },
     async handleSubmit() {
-      const project = await this.contract.methods
+      await this.contract.methods
         .createProject(this.projectName)
         .send({ from: this.address, value: 2000 })
+      const projects = await this.contract.methods.getOwnerProjects().call()
       this.listContributor.forEach(async contributor => {
-        await this.contract.methods.addContributor(
-          project.projectID,
-          contributor
-        )
+        await this.contract.methods
+        .addContributor(projects[2][projects[2].length - 1], contributor)
+        .send()
       })
-      console.log('created')
+      this.listContributor = []
+      this.toAdd = ''
+      this.nbContributor = 0
+      this.$router.push({ name: 'Account' })
     },
   },
 })

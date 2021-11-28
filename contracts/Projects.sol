@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity >=0.4.22 <0.9.0;
 
-contract Projects {
+import "./Entreprise.sol";
+
+contract Projects is Entreprises {
 
     uint[] private allProjectsID;
     uint private randNonce = 10;
@@ -37,8 +39,8 @@ contract Projects {
     * msg.value will be added with the project balance 
     * @param _projectName { string }
     */
-    function createProject(string memory _projectName) external payable {
-        require(bytes(_projectName).length > 0, "Username not valide");
+    function createProject(string memory _projectName) external payable returns (uint) {
+        require(bytes(_projectName).length > 0, "Project name not valid");
         require(msg.value > 0, "Amount of the transaction need to be upper than 0");
         
         uint index;
@@ -97,6 +99,7 @@ contract Projects {
                 allProjectsID.push(newProject.projectID);
             } 
         }
+        return newProject.projectID;
     }
 
     /**
@@ -185,9 +188,9 @@ contract Projects {
     * @param projectID { uint }
     * return { uint, address, string, uint, uint, uint }
     */
-    function getProjectDetails(uint projectID) external view returns (uint, address, string memory, uint256, uint, uint) {
+    function getProjectDetails(uint projectID) external view returns (uint, address, string memory, uint256, uint, uint, bool) {
         require(projects[projectID].registered, "Any project exists with this ID");
-        return (projects[projectID].projectID, projects[projectID].projectOwnerAddress, projects[projectID].projectName, projects[projectID].projectBalance, projects[projectID].projectContributors.length, projects[projectID].nbTransactions);
+        return (projects[projectID].projectID, projects[projectID].projectOwnerAddress, projects[projectID].projectName, projects[projectID].projectBalance, projects[projectID].projectContributors.length, projects[projectID].nbTransactions, projects[projectID].registered);
     }
 
     /**
@@ -206,7 +209,7 @@ contract Projects {
     * Only the owner of the project can add contributor on this project
     * @param pID { uint }
     */
-    function addContributor(uint pID, address newContributor) external payable {
+    function addContributor(uint pID, address newContributor) external {
         require(owners[msg.sender].registered, "You have not any registered project");
         bool idFounded = false;
         for(uint i=0; i < owners[msg.sender].projectsIDList.length; i++)

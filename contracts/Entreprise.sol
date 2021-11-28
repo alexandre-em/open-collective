@@ -56,7 +56,7 @@ contract Entreprises is Users {
    * @dev The owner of the contract (Entreprise) add a member to his group
    * @param newMember {address} the member added
    */
-  function addMember(address newMember) external payable {
+  function addMember(address newMember) external {
     require(entreprises[msg.sender].registered, "Your organisation is not registered");
     require(newMember != msg.sender, "You can't add yourself");
     require(!contains(newMember), "The member is already a collaborator");
@@ -66,7 +66,7 @@ contract Entreprises is Users {
   /**
    * @dev Remove a member from the group
    */
-  function removeMember(address oldMember) external payable {
+  function removeMember(address oldMember) external {
     require(entreprises[msg.sender].registered, "Your organisation is not registered");
     require(msg.sender != oldMember, "You can't remove yourself");
     for (uint256 i = 0; i < entreprises[msg.sender].members.length; i++) {
@@ -77,26 +77,26 @@ contract Entreprises is Users {
   }
 
   //ADD
-  function deposit(uint256 amount) external payable {
+  function depositOnEntreprise() external payable {
     require(entreprises[msg.sender].registered, "Your organisation is not registered");
     require(msg.value > 0, "Amount of the transaction < 0");
-    entreprises[msg.sender].entrepriseBalance += amount;
+    entreprises[msg.sender].entrepriseBalance += msg.value;
   }
 
   function withdraw(uint256 amount) external {
     require(entreprises[msg.sender].registered, "Your organisation is not registered");
-    require(msg.value > 0, "Amount of the transaction < 0");
-    require(entreprise[msg.sender].entrepriseBalance >= amount, "Account balance is downer than your transaction amount");
-    entreprise[msg.sender].entrepriseBalance -= amount;
+    require(amount > 0, "Amount of the transaction < 0");
+    require(entreprises[msg.sender].entrepriseBalance >= amount, "Account balance is downer than your transaction amount");
+    entreprises[msg.sender].entrepriseBalance -= amount;
     address payable _owner = payable(msg.sender);
     _owner.transfer(amount);
   }
 
-  function paySalary(address member) external {
+  function paySalary(address member, uint256 amount) external {
     require(entreprises[msg.sender].registered, "Your organisation is not registered");
-    require(msg.value > 0, "Amount of the transaction < 0");
-    require(entreprise[msg.sender].entrepriseBalance >= amount, "Account balance is downer than your transaction amount");
-    entreprise[msg.sender].entrepriseBalance -= amount;
+    require(amount > 0, "Amount of the transaction < 0");
+    require(entreprises[msg.sender].entrepriseBalance >= amount, "Account balance is downer than your transaction amount");
+    entreprises[msg.sender].entrepriseBalance -= amount;
     address payable _owner = payable(member);
     _owner.transfer(amount);
   }
