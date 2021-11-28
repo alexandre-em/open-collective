@@ -40,15 +40,33 @@ contract Projects {
     function createProject(string memory _projectName) external payable {
         require(bytes(_projectName).length > 0, "Username not valide");
         require(msg.value > 0, "Amount of the transaction need to be upper than 0");
-
+        
+        uint index;
+        bool founded;
         Project memory newProject = initializeNewProject(_projectName);
 
         if(owners[msg.sender].registered) 
         {
-            owners[msg.sender].projectsIDList.push(newProject.projectID);
+            (index, founded) = zeroIndex(1);
+            if(founded)
+            {
+                owners[msg.sender].projectsIDList[index] = newProject.projectID;
+            }
+            else
+            {
+                owners[msg.sender].projectsIDList.push(newProject.projectID);
+            }
             owners[msg.sender].nbProjects++;
             projects[newProject.projectID] = newProject;
-            allProjectsID.push(newProject.projectID);
+            (index, founded) = zeroIndex(2);
+            if(founded)
+            {
+                 allProjectsID[index] = newProject.projectID;
+            }
+            else
+            {
+                allProjectsID.push(newProject.projectID);
+            }
         }
         else 
         {
@@ -58,10 +76,61 @@ contract Projects {
             newOwner.registered = true;
             owners[msg.sender] = newOwner;
 
-            owners[msg.sender].projectsIDList.push(newProject.projectID);
+            (index, founded) = zeroIndex(1);
+            if(founded)
+            {
+                owners[msg.sender].projectsIDList[index] = newProject.projectID;
+            }
+            else
+            {
+                owners[msg.sender].projectsIDList.push(newProject.projectID);
+            }
             owners[msg.sender].nbProjects++;
             projects[newProject.projectID] = newProject;
-            allProjectsID.push(newProject.projectID);  
+            (index, founded) = zeroIndex(2);
+            if(founded)
+            {
+                 allProjectsID[index] = newProject.projectID;
+            }
+            else
+            {
+                allProjectsID.push(newProject.projectID);
+            } 
+        }
+    }
+
+    /**
+    * @dev An utilitary internal function for find index ID = 0 in ID List
+    * If find ID = 0, so return index of the ID=0 and boolean True
+    * When you delete an element of List(uint), this element become a 0, so new ID replace this 0 when creating a new project
+    * 2 types because 2 List of ID need to be update
+    * @param _type { uint }
+    * return { uint, bool }
+    */
+    function zeroIndex(uint _type) internal view returns (uint index, bool founded) {
+        if(_type == 1)
+        {
+            for(uint i=0; i < owners[msg.sender].projectsIDList.length; i++)
+            {
+                if(owners[msg.sender].projectsIDList[i] == 0)
+                {
+                    return (i, true);
+                }
+            }
+        }
+        else if(_type == 2)
+        {
+            for(uint i=0; i < allProjectsID.length; i++)
+            {
+                if(allProjectsID[i] == 0)
+                {
+                    return (i, true);
+                }
+            }
+        }
+        else 
+        {
+            return (0, false);
         }
     }
 
@@ -162,11 +231,13 @@ contract Projects {
     function closeProject(uint pID) external {
         require(owners[msg.sender].registered, "You have not any registered project");
         bool idFounded = false;
+        uint index;
         for(uint i=0; i < owners[msg.sender].projectsIDList.length; i++)
         {
             if(owners[msg.sender].projectsIDList[i] == pID)
             {
                 idFounded = true;
+                index = i;
                 break;
             }
         }
@@ -190,5 +261,17 @@ contract Projects {
                 projects[pID].projectBalance -= share;
             }
         }
+
+        delete projects[pID];
+        delete owners[msg.sender].projectsIDList[index];
+        for(uint j=0; j < allProjectsID.length; j++)
+        {
+            if(allProjectsID[j] == pID)
+            {
+                delete allProjectsID[j];
+                break;
+            }
+        }
     }
+    
 }
