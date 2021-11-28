@@ -381,8 +381,8 @@ contract Projects {
 
     /**
     * @dev An utilitary function to activate the bountie by the author who fixed a bountie
-    * This function return true if the boundie exists (author win the boundie)
-    * This function return false if the boundie does not exist (author give the wrong boundie ID)
+    * This function return true if the bountie exists (author win the boundie)
+    * This function return false if the bountie does not exist (author give the wrong boundie ID)
     * @param pID, _bountieID { uint, uint }
     * return { uint[] }
     */
