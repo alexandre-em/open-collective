@@ -34,7 +34,7 @@ contract Entreprises is Users {
   {
     require(bytes(_name).length > 1, "Insert a valid name");
     require(msg.value > 0, "Amount of the transaction < 0");
-    entreprises[msg.sender] = Entreprise(_name, msg.sender, new address[](100), msg.value, true);
+    entreprises[msg.sender] = Entreprise(_name, msg.sender, new address[](0), msg.value, true);
     emit EntrepriseOpened(msg.sender, entreprises[msg.sender]);
   }
 
@@ -59,7 +59,7 @@ contract Entreprises is Users {
   function addMember(address newMember) external payable {
     require(entreprises[msg.sender].registered, "Your organisation is not registered");
     require(newMember != msg.sender, "You can't add yourself");
-    require(contains(newMember), "The member is already a collaborator");
+    require(!contains(newMember), "The member is already a collaborator");
     entreprises[msg.sender].members.push(newMember);
   }
 

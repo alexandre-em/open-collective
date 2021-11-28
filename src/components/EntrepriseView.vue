@@ -30,15 +30,16 @@
   </div>
   <div class="card-main">
     <div class="member-list" v-if="type === 'get'">
-      <card
-        v-for="member in members"
-        :key="member"
-        title="Member"
-        :subtitle="member"
-        :blue="true"
-      />
+      <div v-for="member in members" :key="member" class="member-card">
+        <h2>Member</h2>
+        <p>{{ member }}</p>
+      </div>
     </div>
-    <form class="add-member" v-else-if="type === 'add'" @submit.prevent="">
+    <form
+      class="add-member"
+      v-else-if="type === 'add'"
+      @submit.prevent="onAddMember(toAdd)"
+    >
       <h1>Add a new member to your group</h1>
       <input id="add-member-input" type="text" v-model="toAdd" />
       <collective-button :transparent="true">Submit</collective-button>
@@ -66,7 +67,7 @@ export default {
   methods: {
     call(type, func) {
       if (type === 'get') this.members = func()
-      else func()
+      else if (func) func()
       this.type = type
     },
   },
@@ -91,6 +92,17 @@ export default {
 .member-list {
   display: flex;
   flex-wrap: wrap;
+}
+.member-card {
+  background-color: rgb(113, 55, 146);
+  margin: 10px;
+  padding: 5px;
+  border-radius: 15px;
+  height: min-content;
+}
+.member-card > p {
+  font-style: italic;
+  color: rgba(240, 248, 255, 0.527);
 }
 
 .add-member {

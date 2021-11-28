@@ -13,6 +13,11 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Account',
     component: () => import('@/views/Account.vue'),
   },
+  {
+    path: '/create',
+    name: 'CreateProject',
+    component: () => import('@/views/CreateProject.vue'),
+  },
 ]
 
 const router = createRouter({

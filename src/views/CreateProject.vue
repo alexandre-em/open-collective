@@ -1,46 +1,52 @@
 <template>
   <div class="home-wrapper">
-    <card
-        v-if="!address"
-        title="Add new contributor"
-        :blue="true"
-    >
-    <div class="container-card">
-        <div class="sub-container"> Name : <input /></div>
-        <div class="sub-container"> Balance : <input type="Number" /></div>
-        
-
-        <div>List of contributor</div>
-        <div class=box-container>
-             <div class="box-item" v-for="item in listContributor" :key="item">
-                {{item}}
-            </div>
+    <card title="Create a new project" :blue="true">
+      <div class="container-card">
+        <div class="sub-container">
+          <input
+            type="text"
+            id="project-name-input"
+            placeholder="Project name"
+            v-model="projectName"
+          />
         </div>
-    </div> 
+
+        <div>List of contributors</div>
+        <div class="box-container">
+          <div class="box-item" v-for="item in listContributor" :key="item">
+            {{ item }}
+          </div>
+        </div>
+      </div>
+      <div class="container-card">
         <div v-if="!this.isActivated">
-            <new-button v-on:click="eventButtonContributor" title="Add contributor"></new-button>
+          <new-button
+            v-on:click="eventButtonContributor"
+            title="Add contributor"
+          ></new-button>
         </div>
 
         <div v-if="this.isActivated">
-            <h3>Add Contributor</h3>
-            <form v-on:submit.prevent="addContributor(option,index)">
-                <!--Adress of contributor :<input type="text" v-model="adress">-->
-                <select name="adress" id="adress-select" v-model="option">
-                    <option value="">--Please choose an adress--</option>
-                     <option v-for="(option, index)  in listAdress" v-bind:value="option" :key="index">
-                         {{ option }}
-                    </option>
-                </select>
-                <button type="submit">Add adress</button>
-                <button v-on:click="eventButtonContributor">Cancel</button>
-            </form>
+          <h3>Add Contributor</h3>
+          <form v-on:submit.prevent="addContributor(option, index)">
+            <input
+              type="text"
+              id="project-name-input"
+              placeholder="Contributor address"
+              v-model="toAdd"
+            />
+            <div class="add-contributors-buttons">
+              <collective-button type="submit">Add address</collective-button>
+              <collective-button v-on:click="eventButtonContributor">
+                Cancel
+              </collective-button>
+            </div>
+          </form>
         </div>
 
-
-    
-        <new-button title="Submit"></new-button>
-      </card>
-      
+        <new-button title="Submit" @click="handleSubmit"></new-button>
+      </div>
+    </card>
   </div>
 </template>
 
@@ -48,45 +54,62 @@
 import { defineComponent, computed } from 'vue'
 import { useStore } from 'vuex'
 import Card from '@/components/Card.vue'
-import CollectiveButton from '@/components/CollectiveButton.vue'
-import Spacer from '@/components/Spacer.vue'
 import NewButton from '@/components/NewButton.vue'
+import CollectiveButton from '@/components/CollectiveButton.vue'
 
 export default defineComponent({
-  name: 'CreateProject',
-  //components: { Card, CollectiveButton, Spacer },
-  components:{Card, NewButton},
+  components: { Card, CollectiveButton, NewButton },
   setup() {
     const store = useStore()
     const address = computed(() => store.state.account.address)
+    const balance = computed(() => store.state.account.balance)
+    const contract = computed(() => store.state.contract)
     const connect = () => store.dispatch('ethereumConnect')
-    return { address, connect }
+    return { address, balance, contract, connect }
   },
-  data(){
-      const nbContributor = 0
-      const isActivated = false
-      const listAdress : string[] = ["daji133fujv","kndaizo331ejio1","an1zedk456d11"]
-      const listContributor : string[] = ["test"]
-      return {nbContributor, isActivated, listContributor, listAdress}
-  },
-  computed: {
-    
+  data() {
+    const nbContributor = 0
+    const projectName = ''
+    const isActivated = false
+    const listAdress: string[] = [
+      'daji133fujv',
+      'kndaizo331ejio1',
+      'an1zedk456d11',
+    ]
+    const listContributor: string[] = []
+    const toAdd = ''
+    return {
+      nbContributor,
+      isActivated,
+      listContributor,
+      listAdress,
+      toAdd,
+      projectName,
+    }
   },
   methods: {
     goToAccount() {
       this.$router.push({ name: 'Account' })
     },
     eventButtonContributor() {
-        this.isActivated = !this.isActivated
+      this.isActivated = !this.isActivated
     },
-    addContributor(adress : string, index : number) {
-        this.listContributor.push(adress)
-        this.isActivated = !this.isActivated
-        this.listAdress.splice(index, 1);
-    }
-
-
-
+    addContributor() {
+      this.listContributor.push(this.toAdd)
+      this.isActivated = !this.isActivated
+    },
+    async handleSubmit() {
+      const project = await this.contract.methods
+        .createProject(this.projectName)
+        .send({ from: this.address, value: 2000 })
+      this.listContributor.forEach(async contributor => {
+        await this.contract.methods.addContributor(
+          project.projectID,
+          contributor
+        )
+      })
+      console.log('created')
+    },
   },
 })
 </script>
@@ -114,20 +137,37 @@ export default defineComponent({
   text-decoration: none;
   font-variant: small-caps;
 }
-.container-card{
-    margin: 1em;
+.container-card {
+  margin: 1em;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
-.box-container{
-    display: flex;
-    flex-direction: row;
+.box-container {
+  display: flex;
+  flex-direction: row;
 }
-.box-item{
-    border: solid;
-    width:min-content;
-    padding:5px;
-    margin:5px;
-    border-radius: 5px;
+.box-item {
+  border: solid;
+  width: min-content;
+  padding: 5px;
+  margin: 5px;
+  border-radius: 5px;
 }
 
+#project-name-input {
+  border-radius: 5px;
+  border-style: none;
+  height: min-content;
+  outline-style: none;
+  padding: 10px;
+  margin: 10px;
+  width: 100%;
+}
 
+.add-contributors-buttons {
+  display: flex;
+  width: 100%;
+  background-color: aliceblue;
+}
 </style>

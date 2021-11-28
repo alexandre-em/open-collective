@@ -113,13 +113,10 @@ contract Users {
    * @dev An utilitary function to change the msg.sender (User) account username
    * @param _username { string }
    */
-  function changeUsername(string memory _username) external payable {
+  function changeUsername(string memory _username) external {
     require(users[msg.sender].registered, "No account openned for this User");
     require(bytes(_username).length > 0, "Username not valide");
-    require(msg.value > 0, "Amount of the transaction need to be upper than 0");
     users[msg.sender].username = _username;
-    users[msg.sender].userBalance += msg.value;
-    users[msg.sender].nbDepositTransactions++;
   }
 
   /**

@@ -38,7 +38,15 @@
             :onGetMemberList="getMemberList"
             :onAddMember="handleAddMember"
             v-if="type === accountTypes[1]"
-          ></entreprise-view>
+          />
+          <user-view
+            v-else-if="type === accountTypes[0]"
+            :onChangeName="handleChangeName"
+            :onDeposit="handleDeposit"
+            :onSend="handleSend"
+            :onCreateProject="handleCreateProject"
+            :onWithdraw="handleWithdraw"
+          />
         </div>
       </card>
     </div>
@@ -53,6 +61,7 @@ import Web3 from 'web3'
 import Card from '@/components/Card.vue'
 import CollectiveButton from '@/components/CollectiveButton.vue'
 import EntrepriseView from '@/components/EntrepriseView.vue'
+import UserView from '@/components/UserView.vue'
 import { ACCOUNT_TYPE_COMPANY, ACCOUNT_TYPE_USER } from '@/constants/store'
 import { EMPTY_ADDRESS } from '@/constants'
 
@@ -70,7 +79,7 @@ type AccountType = {
 }
 
 export default defineComponent({
-  components: { Card, CollectiveButton, EntrepriseView },
+  components: { Card, CollectiveButton, EntrepriseView, UserView },
   setup() {
     const store = useStore()
     const address = computed(() => store.state.account.address)
@@ -137,13 +146,41 @@ export default defineComponent({
         )
     },
     getMemberList() {
-      return this.account.members?.filter(isMember => isMember == EMPTY_ADDRESS)
+      return this.account.members?.filter(isMember => isMember !== EMPTY_ADDRESS)
     },
-    handleAddMember() {
-      console.log('added')
+    async handleAddMember(address: string) {
+      await this.contract.methods.addMember(address).send({
+        from: this.address,
+        value: this.web3.utils.toWei('2', 'ether'),
+      })
+      await this.updateAccount()
     },
     handleCreateProject() {
-      console.log('test')
+      this.$router.push({ name: 'CreateProject' })
+    },
+    async handleChangeName(name: string) {
+      await this.contract.methods.changeUsername(name).send({
+        from: this.address,
+        value: this.web3.utils.toWei('2', 'ether'),
+      })
+      await this.updateAccount()
+    },
+    async handleSend(address: string, amount: number) {
+      const amountOnEther = this.web3.utils.toWei(amount.toString(), 'ether')
+      await this.contract.methods.sendMoney(address, BigInt(amountOnEther)).send()
+      await this.updateAccount()
+    },
+    async handleDeposit(amount: number) {
+      await this.contract.methods.deposit().send({
+        from: this.address,
+        value: this.web3.utils.toWei(amount.toString(), 'ether'),
+      })
+      await this.updateAccount()
+    },
+    async handleWithdraw(amount: number) {
+      const amountOnEther = this.web3.utils.toWei(amount.toString(), 'ether')
+      await this.contract.methods.withdrawUserBalance(BigInt(amountOnEther)).send()
+      await this.updateAccount()
     },
   },
   async mounted() {
